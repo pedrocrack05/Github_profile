@@ -33,3 +33,29 @@ export interface GithubProfile {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UnghUserResponse {
+  user?: {
+    id: number;
+    username: string;
+    name: string | null;
+    twitter?: string | null;
+    avatar?: string;
+  };
+}
+
+export interface UnghReposResponse {
+  repos?: Array<{
+    id: number;
+    name: string;
+    repo: string;
+    description: string | null;
+    createdAt: string;
+    updatedAt: string;
+    pushedAt: string;
+    stars: number;
+    watchers: number;
+    forks: number;
+    defaultBranch: string;
+  }>;
+}
