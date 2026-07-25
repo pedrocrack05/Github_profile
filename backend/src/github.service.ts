@@ -1,8 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { GithubProfile, GithubUserApiResponse } from './github.types';
 
 @Injectable()
 export class GithubService {
+  private readonly logger = new Logger(GithubService.name);
+
   async getUser(username: string): Promise<GithubProfile> {
     const normalizedUsername = username.trim();
 
@@ -10,11 +12,18 @@ export class GithubService {
       throw new HttpException('Username is required', HttpStatus.BAD_REQUEST);
     }
 
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'github-profile-challenge',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+
+    if (process.env.GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
+
     const response = await fetch(`https://api.github.com/users/${encodeURIComponent(normalizedUsername)}`, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        'User-Agent': 'github-profile-challenge',
-      },
+      headers,
     });
 
     if (response.status === 404) {
@@ -22,6 +31,7 @@ export class GithubService {
     }
 
     if (!response.ok) {
+      this.logger.warn(`GitHub API request failed with status ${response.status}`);
       throw new HttpException('GitHub API request failed', HttpStatus.BAD_GATEWAY);
     }
 
